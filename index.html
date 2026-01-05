@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Japan Explorer | Travel Guide</title>
+    <style>
+      :root {
+        --ink: #0f172a;
+        --muted: #475569;
+        --accent: #ef4444;
+        --accent-soft: #fecdd3;
+        --surface: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+        --radius: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: var(--surface);
+        color: var(--ink);
+        line-height: 1.6;
+      }
+
+      header {
+        background: radial-gradient(circle at 20% 20%, #ffe4e6 0, #fee2e2 25%, #f8fafc 60%);
+        padding: 48px 24px 64px;
+      }
+
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--ink);
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .logo-badge {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        background: var(--accent);
+        color: #fff;
+        border-radius: 50%;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links a {
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 999px;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .nav-links a:hover {
+        background: var(--accent-soft);
+        color: var(--ink);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 32px;
+        align-items: center;
+      }
+
+      .hero h1 {
+        margin: 0 0 12px;
+        font-size: clamp(32px, 5vw, 46px);
+        line-height: 1.15;
+      }
+
+      .hero p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .pill {
+        background: var(--card);
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .pill strong {
+        color: var(--ink);
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        background: var(--ink);
+        color: #fff;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+        background: #0b1224;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      main {
+        padding: 48px 24px 72px;
+      }
+
+      h2 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .section-header p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+
+      .list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      .list li {
+        padding: 12px;
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .list strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--ink);
+      }
+
+      .timeline {
+        display: grid;
+        gap: 12px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .step-number {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-soft);
+        color: var(--ink);
+        font-weight: 700;
+        border: 1px solid var(--border);
+      }
+
+      .tips {
+        display: grid;
+        gap: 10px;
+      }
+
+      .tip {
+        padding: 14px;
+        border-radius: 12px;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+      }
+
+      footer {
+        padding: 32px 24px 40px;
+        text-align: center;
+        color: var(--muted);
+        background: #0f172a;
+        color: #e2e8f0;
+        border-top: 1px solid #1f2937;
+      }
+
+      @media (max-width: 640px) {
+        nav {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .section-header {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <nav aria-label="Primary">
+          <a class="logo" href="#top">
+            <span class="logo-badge">JP</span>
+            Japan Explorer
+          </a>
+          <div class="nav-links">
+            <a href="#highlights">Highlights</a>
+            <a href="#culture">Culture</a>
+            <a href="#food">Food</a>
+            <a href="#itinerary">Itinerary</a>
+            <a href="#tips">Essentials</a>
+          </div>
+        </nav>
+        <div class="hero">
+          <div>
+            <p class="pill"><strong>Plan smarter.</strong> See Japan with confidence.</p>
+            <h1>Curated ideas for a modern Japan getaway</h1>
+            <p>
+              A concise, design-forward guide with the must-see spots, cultural etiquette, and
+              flavor-packed dishes that give each region its personality. Pack light—we planned the
+              details.
+            </p>
+            <div class="badges">
+              <span class="pill">7-day outline</span>
+              <span class="pill">City + countryside balance</span>
+              <span class="pill">Food-first tips</span>
+            </div>
+            <a class="cta" href="#itinerary">View the suggested itinerary →</a>
+          </div>
+          <div class="card">
+            <h3 style="margin-top: 0">Snapshot</h3>
+            <ul class="list">
+              <li>
+                <strong>Best seasons</strong>
+                Spring (late March–April) for blossoms, autumn (October–November) for crisp hikes.
+              </li>
+              <li>
+                <strong>Transit essentials</strong>
+                Suica/PASMO works on most trains; Shinkansen seat reservations help on busy weekends.
+              </li>
+              <li>
+                <strong>Cash vs. card</strong>
+                Cards widely accepted, but keep a small ¥10,000 reserve for small eateries and rural
+                buses.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <section id="highlights">
+          <div class="section-header">
+            <div>
+              <h2>Highlights you shouldn't skip</h2>
+              <p>Blend neon nights, temple calm, and crisp mountain air.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h3>Kyoto stillness</h3>
+              <p>
+                Early mornings in Arashiyama's bamboo grove, golden light at Kinkaku-ji, and a slow
+                tea at a machiya cafe. Reserve ahead for a small-group tea ceremony.
+              </p>
+              <ul class="list">
+                <li><strong>Don't miss:</strong> Fushimi Inari at sunrise, Nishiki Market snacks.</li>
+                <li><strong>Photo spot:</strong> Philosopher's Path in late March.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Tokyo contrasts</h3>
+              <p>
+                Addictive ramen alleys, design museums, and pocket parks between skyscrapers. Hop on
+                the Yamanote Line loop to see multiple neighborhoods in one day.
+              </p>
+              <ul class="list">
+                <li><strong>Don't miss:</strong> TeamLab Borderless, Ameya-Yokocho snacks.</li>
+                <li><strong>Photo spot:</strong> Shibuya Sky at blue hour—book in advance.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Hokkaido outdoors</h3>
+              <p>
+                Wide-open trails, onsen culture, and dairy-rich cuisine. Base yourself in Sapporo
+                and day trip to the dramatic cliffs of Shakotan Peninsula.
+              </p>
+              <ul class="list">
+                <li><strong>Don't miss:</strong> Niseko summer hikes, Sapporo beer garden.</li>
+                <li><strong>Photo spot:</strong> Blue Pond near Biei in autumn fog.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="culture" style="margin-top: 48px">
+          <div class="section-header">
+            <div>
+              <h2>Quick cultural cues</h2>
+              <p>Small gestures that make a big impression.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <ul class="list">
+                <li>
+                  <strong>Stations are quiet zones.</strong>
+                  Keep phone calls minimal and stand to the left on most escalators (right in Osaka).
+                </li>
+                <li>
+                  <strong>Cash at shrines.</strong>
+                  Keep a coin pouch for offerings; bow once before entering torii gates.
+                </li>
+                <li>
+                  <strong>Onsen basics.</strong>
+                  Wash thoroughly before entering the bath, and keep towels out of the water.
+                </li>
+              </ul>
+            </div>
+            <div class="card">
+              <ul class="list">
+                <li>
+                  <strong>Restaurant rhythm.</strong>
+                  Water and tea are complimentary; pay at the register unless seated check is provided.
+                </li>
+                <li>
+                  <strong>Trains run on time.</strong>
+                  Aim to arrive 5–10 minutes early for bullet trains; queue where floor markers show.
+                </li>
+                <li>
+                  <strong>Trash is rare.</strong>
+                  Carry a small bag for recyclables; convenience stores are reliable for bins.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="food" style="margin-top: 48px">
+          <div class="section-header">
+            <div>
+              <h2>Food trail</h2>
+              <p>Mix comfort staples with regional favorites.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h3>Tokyo</h3>
+              <ul class="list">
+                <li><strong>Shoyu ramen:</strong> Try a counter in Ginza or Kanda.</li>
+                <li><strong>Depachika picnics:</strong> Stock up at Tokyo Station's food halls.</li>
+                <li><strong>Craft coffee:</strong> Kiyosumi-Shirakawa's roasters are a short train away.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Kyoto</h3>
+              <ul class="list">
+                <li><strong>Obanzai lunch:</strong> Seasonal side dishes, often under ¥1,200.</li>
+                <li><strong>Matcha everything:</strong> From soft serve to layered parfaits.</li>
+                <li><strong>Tofu hotpot:</strong> Yudofu by Nanzen-ji after a garden stroll.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Osaka</h3>
+              <ul class="list">
+                <li><strong>Takoyaki crawl:</strong> Dotombori for the classics; Tenma for locals.</li>
+                <li><strong>Okonomiyaki:</strong> Hiroshima-style spots often offer counter seating.</li>
+                <li><strong>Kushikatsu:</strong> No double dipping—use the cabbage leaves.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Hokkaido</h3>
+              <ul class="list">
+                <li><strong>Soup curry:</strong> Sapporo specialty with root vegetables.</li>
+                <li><strong>Seafood don:</strong> Try dawn markets in Hakodate or Sapporo's Nijo Market.</li>
+                <li><strong>Soft serve:</strong> Milk-rich cones at farm stands on rural drives.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="itinerary" style="margin-top: 48px">
+          <div class="section-header">
+            <div>
+              <h2>7-day outline</h2>
+              <p>Light structure you can tweak on the fly.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="timeline">
+              <div class="step">
+                <div class="step-number">Day 1</div>
+                <div>
+                  <strong>Tokyo arrival.</strong> Check into a hub near Tokyo Station or Shinjuku. Evening
+                  izakaya in Omoide Yokocho and a quick peek at Shibuya Crossing.
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">Day 2</div>
+                <div>
+                  <strong>Tokyo design day.</strong> Spend the morning at Nezu Museum, lunch in Aoyama,
+                  and sunset views from Roppongi Hills or Shibuya Sky.
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">Day 3</div>
+                <div>
+                  <strong>Hakone or Kamakura escape.</strong> Hot springs with Fuji views or seaside
+                  temples. Return to Tokyo for dinner.
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">Day 4</div>
+                <div>
+                  <strong>Kyoto transfer.</strong> Ride the Shinkansen, drop bags, and explore
+                  Gion's lantern-lit alleys at dusk.
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">Day 5</div>
+                <div>
+                  <strong>Temples & tea.</strong> Morning at Fushimi Inari, mid-day at Nishiki Market,
+                  and a sunset stroll through Higashiyama.
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">Day 6</div>
+                <div>
+                  <strong>Arashiyama calm.</strong> Rent a bike for bamboo grove and river views, then
+                  soak at an onsen in Kurama or Kameoka.
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-number">Day 7</div>
+                <div>
+                  <strong>Osaka finale.</strong> Transfer to Osaka for flights, squeeze in a takoyaki
+                  crawl, and stock up on snacks at Kuromon Market.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tips" style="margin-top: 48px">
+          <div class="section-header">
+            <div>
+              <h2>Practical essentials</h2>
+              <p>Keep these in your back pocket.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h3>Transit toolkit</h3>
+              <div class="tips">
+                <div class="tip">
+                  <strong>IC cards:</strong> Grab a Suica or PASMO before leaving the airport; works on
+                  metro, buses, and most vending machines.
+                </div>
+                <div class="tip">
+                  <strong>Data:</strong> eSIMs are reliable—look for plans with 10–20GB for a week.
+                </div>
+                <div class="tip">
+                  <strong>Luggage:</strong> Use takkyubin forwarding between cities to travel light.
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Weather planning</h3>
+              <div class="tips">
+                <div class="tip">
+                  <strong>Rain-ready:</strong> Pack a compact umbrella; convenience stores sell sturdy
+                  clear ones for ~¥500.
+                </div>
+                <div class="tip">
+                  <strong>Heat tactics:</strong> In summer, carry a small towel and sunscreen—hydration
+                  drinks like Pocari Sweat are everywhere.
+                </div>
+                <div class="tip">
+                  <strong>Layering:</strong> Evenings cool quickly in spring and autumn, so keep a light
+                  jacket in your daypack.
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Etiquette refresh</h3>
+              <div class="tips">
+                <div class="tip">
+                  <strong>Cash handoff:</strong> Use the small tray at registers; avoid passing bills
+                  directly.
+                </div>
+                <div class="tip">
+                  <strong>Quiet corners:</strong> Lower voices on trains and in shared lodgings.
+                </div>
+                <div class="tip">
+                  <strong>Thank you:</strong> "Arigatou gozaimasu" goes a long way—pair it with a light
+                  bow.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        Crafted for travelers who want a balanced Tokyo–Kyoto loop with room for surprise detours.
+        Bookmark and tweak as you go.
+      </div>
+    </footer>
+  </body>
+</html>
