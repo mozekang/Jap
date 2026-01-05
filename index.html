@@ -1,20 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="zh-Hans">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Japan Explorer | Travel Guide</title>
+    <title>五十音记忆工具</title>
     <style>
       :root {
-        --ink: #0f172a;
-        --muted: #475569;
-        --accent: #ef4444;
-        --accent-soft: #fecdd3;
-        --surface: #f8fafc;
-        --card: #ffffff;
-        --border: #e2e8f0;
-        --shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
-        --radius: 16px;
+        color-scheme: light;
+        --bg: #f4f1ec;
+        --bg-accent: #fbe7d3;
+        --ink: #1f2a36;
+        --muted: #6b7280;
+        --card: rgba(255, 255, 255, 0.88);
+        --accent: #e27349;
+        --accent-dark: #c85d35;
+        --success: #16a34a;
+        --error: #dc2626;
+        --warn: #f97316;
+        --shadow: 0 18px 40px rgba(31, 42, 54, 0.16);
+        --radius: 18px;
       }
 
       * {
@@ -23,564 +27,1927 @@
 
       body {
         margin: 0;
-        font-family: "Inter", system-ui, -apple-system, sans-serif;
-        background: var(--surface);
+        min-height: 100vh;
+        font-family: "Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+        background: radial-gradient(circle at top, #fff2df 0%, var(--bg) 55%, #f7efe7 100%);
         color: var(--ink);
-        line-height: 1.6;
       }
 
-      header {
-        background: radial-gradient(circle at 20% 20%, #ffe4e6 0, #fee2e2 25%, #f8fafc 60%);
-        padding: 48px 24px 64px;
+      .lyrics-stage {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        z-index: 0;
+        pointer-events: none;
       }
 
-      .wrap {
-        max-width: 1100px;
-        margin: 0 auto;
-      }
-
-      nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 32px;
-      }
-
-      .logo {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        color: var(--ink);
-        text-decoration: none;
-        text-transform: uppercase;
-      }
-
-      .logo-badge {
-        width: 36px;
-        height: 36px;
+      .lyrics-track {
+        position: absolute;
+        left: 6vw;
+        right: 6vw;
+        top: 0;
         display: grid;
-        place-items: center;
-        background: var(--accent);
-        color: #fff;
-        border-radius: 50%;
-        font-size: 14px;
+        gap: 18px;
+        font-size: clamp(28px, 6vw, 72px);
         font-weight: 700;
+        color: rgba(31, 42, 54, 0.2);
+        transition: transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
       }
 
-      .nav-links {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
+      .lyric-line {
+        filter: blur(6px);
+        opacity: 0.18;
+        transition: filter 0.6s ease, opacity 0.6s ease;
       }
 
-      .nav-links a {
-        color: var(--muted);
-        text-decoration: none;
-        font-weight: 600;
-        padding: 8px 12px;
-        border-radius: 999px;
-        transition: background 0.2s ease, color 0.2s ease;
+      .lyric-line.focus {
+        filter: blur(0);
+        opacity: 1;
       }
 
-      .nav-links a:hover {
-        background: var(--accent-soft);
-        color: var(--ink);
+      .lyric-line.focus .lyric-hit {
+        color: var(--accent-dark);
+        text-shadow: 0 12px 22px rgba(226, 115, 73, 0.35);
       }
 
-      .hero {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 32px;
-        align-items: center;
+      .lyrics-stage.katakana-hint .lyric-line.focus .lyric-hit {
+        text-decoration: underline;
+        text-decoration-color: #cbd5e1;
+        text-underline-offset: 10px;
+        text-decoration-thickness: 4px;
       }
 
-      .hero h1 {
-        margin: 0 0 12px;
-        font-size: clamp(32px, 5vw, 46px);
-        line-height: 1.15;
+      .lyric-hit {
+        position: relative;
+        display: inline-block;
+        background: rgba(226, 115, 73, 0.18);
+        border-radius: 10px;
+        padding: 0 6px;
       }
 
-      .hero p {
-        margin: 0 0 20px;
-        color: var(--muted);
-        font-size: 18px;
+      .slash {
+        opacity: 0.22;
+        padding: 0 6px;
       }
 
-      .badges {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
+      .lyric-line.focus .lyric-hit::after {
+        content: "";
+        position: absolute;
+        inset: -10px -12px;
+        border-radius: 14px;
+        border: 2px solid rgba(226, 115, 73, 0.55);
+        opacity: 0;
+        transform: scale(0.9);
       }
 
-      .pill {
-        background: var(--card);
-        color: var(--muted);
-        border: 1px solid var(--border);
-        padding: 8px 12px;
-        border-radius: 999px;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+      .lyric-line.focus.reveal .lyric-hit::after {
+        animation: frameIn 0.55s ease;
       }
 
-      .pill strong {
-        color: var(--ink);
+      .lyric-line.focus.pulse .lyric-hit {
+        animation: pulse 0.4s ease;
       }
 
-      .cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 18px;
-        background: var(--ink);
-        color: #fff;
+      .ui {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        padding: 32px 18px;
+      }
+
+      .history {
+        position: fixed;
+        top: 24px;
+        left: 24px;
+        width: min(180px, 42vw);
+        max-height: 50vh;
+        overflow: hidden;
+        padding: 8px 10px;
         border-radius: 12px;
-        text-decoration: none;
-        font-weight: 700;
-        box-shadow: var(--shadow);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(6px);
+        color: rgba(31, 42, 54, 0.6);
+        text-shadow: 0 4px 12px rgba(255, 255, 255, 0.6);
       }
 
-      .cta:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
-        background: #0b1224;
-      }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 20px;
-        box-shadow: var(--shadow);
-      }
-
-      main {
-        padding: 48px 24px 72px;
-      }
-
-      h2 {
-        margin: 0 0 8px;
-        font-size: 28px;
-      }
-
-      .section-header {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-      }
-
-      .section-header p {
-        margin: 0;
-        color: var(--muted);
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 16px;
-      }
-
-      .list {
+      .history-list {
         list-style: none;
         padding: 0;
         margin: 0;
         display: grid;
-        gap: 12px;
+        gap: 6px;
       }
 
-      .list li {
-        padding: 12px;
-        border: 1px dashed var(--border);
-        border-radius: 12px;
-        background: #fff;
-      }
-
-      .list strong {
-        display: block;
-        margin-bottom: 6px;
-        color: var(--ink);
-      }
-
-      .timeline {
+      .record {
         display: grid;
-        gap: 12px;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+        border-radius: 0;
+        background: transparent;
+        border: none;
       }
 
-      .step {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 12px;
-        align-items: start;
+      .record.new {
+        animation: slideIn 0.35s ease;
       }
 
-      .step-number {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
+      .record.correct {
+        color: rgba(22, 163, 74, 0.9);
+      }
+
+      .record.near {
+        color: rgba(249, 115, 22, 0.9);
+      }
+
+      .record.wrong {
+        color: rgba(220, 38, 38, 0.9);
+      }
+
+      .record-kana {
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .record-romaji {
+        font-size: 13px;
+        color: currentColor;
+        max-width: 50%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .record-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
         display: grid;
         place-items: center;
-        background: var(--accent-soft);
-        color: var(--ink);
         font-weight: 700;
-        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.7);
+        color: currentColor;
       }
 
-      .tips {
+      .history.review .record-romaji {
+        display: none;
+      }
+
+      .history.review .record {
+        grid-template-columns: auto auto;
+        justify-content: space-between;
+      }
+
+
+      .hud {
+        position: absolute;
+        width: min(320px, 70vw);
+        text-align: left;
+        color: var(--ink);
+        text-shadow: 0 6px 20px rgba(255, 255, 255, 0.7);
+        transition: opacity 0.2s ease;
+      }
+
+      .hud.moving {
+        opacity: 0;
+      }
+
+      .hud-title {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.14em;
+      }
+
+      .hud-subtitle {
+        margin: 4px 0 12px;
+        color: rgba(31, 42, 54, 0.65);
+        font-size: 12px;
+      }
+
+      .corner-controls {
+        position: fixed;
+        left: 24px;
+        bottom: 24px;
+        display: flex;
+        gap: 10px;
+        z-index: 2;
+      }
+
+      .corner-btn {
+        border: 1px solid rgba(31, 42, 54, 0.2);
+        background: rgba(255, 255, 255, 0.6);
+        color: rgba(31, 42, 54, 0.7);
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: border 0.2s ease, transform 0.2s ease;
+      }
+
+      .corner-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent-dark);
+        transform: translateY(-1px);
+      }
+
+      .corner-btn.active {
+        border-color: var(--accent);
+        color: var(--accent-dark);
+      }
+
+
+      .pause-note {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: var(--muted);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .pause-note.show {
+        opacity: 1;
+      }
+
+      .input-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .input-shell {
+        width: min(180px, 50vw);
+        border-bottom: 2px solid var(--accent-dark);
+        padding-bottom: 4px;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px 0;
+        border: none;
+        font-size: 22px;
+        font-weight: 600;
+        text-align: center;
+        background: transparent;
+        color: var(--accent-dark);
+      }
+
+      input:focus {
+        outline: none;
+      }
+
+      input:disabled {
+        background: transparent;
+        color: var(--muted);
+      }
+
+      input.shake {
+        animation: shake 0.35s ease;
+      }
+
+      .checkmark {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid rgba(226, 115, 73, 0.5);
+        color: var(--accent-dark);
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+        font-weight: 700;
+        opacity: 0;
+        transform: scale(0.6);
+        pointer-events: none;
+      }
+
+      .checkmark.show {
+        animation: checkPop 2s ease;
+      }
+
+      .status {
+        margin-top: 12px;
+        min-height: 58px;
+        padding: 6px 0;
+        border: none;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+
+      .status.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .status.review {
+        color: var(--accent-dark) !important;
+      }
+
+      .status.review .status-title {
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .status.review .status-detail {
+        display: none;
+      }
+
+      .status.success {
+        color: rgba(22, 163, 74, 0.95);
+      }
+
+      .status.warning {
+        color: rgba(249, 115, 22, 0.95);
+      }
+
+      .status.error {
+        color: rgba(220, 38, 38, 0.95);
+      }
+
+      .status-title {
+        font-weight: 700;
+        font-size: 15px;
+      }
+
+      .status-detail {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .status-source {
+        font-size: 13px;
+        color: rgba(31, 42, 54, 0.8);
+        padding: 2px 0;
+        border-radius: 8px;
+      }
+
+      .source-label {
+        color: var(--muted);
+        margin-right: 6px;
+      }
+
+      .audio-row {
+        margin-top: 10px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .audio-row.show {
+        display: flex;
+      }
+
+      .audio-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--accent-dark);
+        background: transparent;
+        color: var(--accent-dark);
+        display: grid;
+        place-items: center;
+        padding: 0;
+      }
+
+      .audio-btn:hover {
+        background: rgba(226, 115, 73, 0.12);
+      }
+
+      .round-note {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--accent-dark);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .round-note.show {
+        opacity: 1;
+      }
+
+
+      .lyrics-panel {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 20;
+        padding: 20px;
+      }
+
+      .lyrics-panel.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .lyrics-card {
+        width: min(860px, 100%);
+        max-height: min(80vh, 720px);
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 18px 20px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .lyrics-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .lyrics-header h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .close-btn {
+        background: var(--accent-dark);
+        color: #fff;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        font-size: 16px;
+        display: grid;
+        place-items: center;
+      }
+
+      .lyrics-list {
+        overflow: auto;
+        padding-right: 6px;
         display: grid;
         gap: 10px;
       }
 
-      .tip {
-        padding: 14px;
-        border-radius: 12px;
-        background: #fff7ed;
-        border: 1px solid #fed7aa;
+      .lyrics-line {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px dashed rgba(31, 42, 54, 0.12);
       }
 
-      footer {
-        padding: 32px 24px 40px;
-        text-align: center;
-        color: var(--muted);
-        background: #0f172a;
-        color: #e2e8f0;
-        border-top: 1px solid #1f2937;
+      .lyrics-line:last-child {
+        border-bottom: none;
       }
 
-      @media (max-width: 640px) {
-        nav {
-          flex-direction: column;
-          align-items: flex-start;
+      .lyrics-text {
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .lyrics-index {
+        margin-right: 8px;
+        font-weight: 700;
+        color: var(--accent-dark);
+      }
+
+      .lyrics-line.selected .lyrics-text {
+        color: var(--accent-dark);
+      }
+
+      .select-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid rgba(226, 115, 73, 0.6);
+        background: transparent;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+      }
+
+      .select-btn:hover {
+        background: var(--accent-dark);
+        border-color: var(--accent-dark);
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        20% {
+          transform: translateX(-6px);
+        }
+        40% {
+          transform: translateX(6px);
+        }
+        60% {
+          transform: translateX(-4px);
+        }
+        80% {
+          transform: translateX(4px);
+        }
+      }
+
+      @keyframes slideIn {
+        0% {
+          opacity: 0;
+          transform: translateX(-12px) scale(0.96);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0) scale(1);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(0.98);
+        }
+        50% {
+          transform: scale(1.06);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes frameIn {
+        0% {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        60% {
+          opacity: 1;
+          transform: scale(1.02);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.05);
+        }
+      }
+
+
+      @keyframes checkPop {
+        0% {
+          opacity: 0;
+          transform: scale(0.6);
+        }
+        20% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        80% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+      }
+
+      @keyframes fadeSlide {
+        0% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(12px);
+        }
+      }
+
+      @media (max-width: 860px) {
+        .history {
+          left: 16px;
+          top: 16px;
         }
 
-        .section-header {
-          flex-direction: column;
+        .corner-controls {
+          left: 16px;
+          bottom: 16px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .hud {
+          left: 6vw;
+          width: min(92vw, 520px);
+        }
+
+        .lyrics-track {
+          font-size: clamp(24px, 8vw, 54px);
         }
       }
     </style>
   </head>
   <body>
-    <header>
-      <div class="wrap">
-        <nav aria-label="Primary">
-          <a class="logo" href="#top">
-            <span class="logo-badge">JP</span>
-            Japan Explorer
-          </a>
-          <div class="nav-links">
-            <a href="#highlights">Highlights</a>
-            <a href="#culture">Culture</a>
-            <a href="#food">Food</a>
-            <a href="#itinerary">Itinerary</a>
-            <a href="#tips">Essentials</a>
+    <div class="lyrics-stage" id="lyricsStage">
+      <div class="lyrics-track" id="lyricsTrack"></div>
+    </div>
+
+    <div class="ui">
+      <aside class="history" id="historyPanel">
+        <ul class="history-list" id="historyList"></ul>
+      </aside>
+
+      <div class="hud" id="hud">
+        <p class="pause-note" id="pauseNote">回忆刚才最容易错的是哪几个</p>
+        <div class="input-row">
+          <div class="input-shell">
+            <input id="answer" type="text" autocomplete="off" />
           </div>
-        </nav>
-        <div class="hero">
-          <div>
-            <p class="pill"><strong>Plan smarter.</strong> See Japan with confidence.</p>
-            <h1>Curated ideas for a modern Japan getaway</h1>
-            <p>
-              A concise, design-forward guide with the must-see spots, cultural etiquette, and
-              flavor-packed dishes that give each region its personality. Pack light—we planned the
-              details.
-            </p>
-            <div class="badges">
-              <span class="pill">7-day outline</span>
-              <span class="pill">City + countryside balance</span>
-              <span class="pill">Food-first tips</span>
-            </div>
-            <a class="cta" href="#itinerary">View the suggested itinerary →</a>
-          </div>
-          <div class="card">
-            <h3 style="margin-top: 0">Snapshot</h3>
-            <ul class="list">
-              <li>
-                <strong>Best seasons</strong>
-                Spring (late March–April) for blossoms, autumn (October–November) for crisp hikes.
-              </li>
-              <li>
-                <strong>Transit essentials</strong>
-                Suica/PASMO works on most trains; Shinkansen seat reservations help on busy weekends.
-              </li>
-              <li>
-                <strong>Cash vs. card</strong>
-                Cards widely accepted, but keep a small ¥10,000 reserve for small eateries and rural
-                buses.
-              </li>
-            </ul>
-          </div>
+          <div class="checkmark" id="checkmark">✓</div>
+        </div>
+        <div class="round-note" id="roundNote">来学新的一组吧！</div>
+        <div class="status" id="status" aria-live="polite">
+          <span class="status-title" id="statusTitle"></span>
+          <span class="status-detail" id="statusDetail"></span>
+          <div class="status-source" id="statusSource"></div>
+        </div>
+        <div class="audio-row" id="audioRow">
+          <button class="audio-btn" id="audioBtn" type="button" aria-label="播放读音">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path
+                d="M4 9h3.5L12 5v14l-4.5-4H4z"
+                fill="currentColor"
+              />
+              <path
+                d="M16 8.5c1.6 1.4 1.6 5.6 0 7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M18.5 6c2.8 2.8 2.8 9.2 0 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
         </div>
       </div>
-    </header>
+    </div>
 
-    <main>
-      <div class="wrap">
-        <section id="highlights">
-          <div class="section-header">
-            <div>
-              <h2>Highlights you shouldn't skip</h2>
-              <p>Blend neon nights, temple calm, and crisp mountain air.</p>
-            </div>
-          </div>
-          <div class="grid">
-            <div class="card">
-              <h3>Kyoto stillness</h3>
-              <p>
-                Early mornings in Arashiyama's bamboo grove, golden light at Kinkaku-ji, and a slow
-                tea at a machiya cafe. Reserve ahead for a small-group tea ceremony.
-              </p>
-              <ul class="list">
-                <li><strong>Don't miss:</strong> Fushimi Inari at sunrise, Nishiki Market snacks.</li>
-                <li><strong>Photo spot:</strong> Philosopher's Path in late March.</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>Tokyo contrasts</h3>
-              <p>
-                Addictive ramen alleys, design museums, and pocket parks between skyscrapers. Hop on
-                the Yamanote Line loop to see multiple neighborhoods in one day.
-              </p>
-              <ul class="list">
-                <li><strong>Don't miss:</strong> TeamLab Borderless, Ameya-Yokocho snacks.</li>
-                <li><strong>Photo spot:</strong> Shibuya Sky at blue hour—book in advance.</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>Hokkaido outdoors</h3>
-              <p>
-                Wide-open trails, onsen culture, and dairy-rich cuisine. Base yourself in Sapporo
-                and day trip to the dramatic cliffs of Shakotan Peninsula.
-              </p>
-              <ul class="list">
-                <li><strong>Don't miss:</strong> Niseko summer hikes, Sapporo beer garden.</li>
-                <li><strong>Photo spot:</strong> Blue Pond near Biei in autumn fog.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
+    <div class="corner-controls">
+      <button class="corner-btn" id="rangeBtn" type="button">学习范围</button>
+      <button class="corner-btn" id="phraseToggle" type="button">词组: 关</button>
+    </div>
 
-        <section id="culture" style="margin-top: 48px">
-          <div class="section-header">
-            <div>
-              <h2>Quick cultural cues</h2>
-              <p>Small gestures that make a big impression.</p>
-            </div>
-          </div>
-          <div class="grid">
-            <div class="card">
-              <ul class="list">
-                <li>
-                  <strong>Stations are quiet zones.</strong>
-                  Keep phone calls minimal and stand to the left on most escalators (right in Osaka).
-                </li>
-                <li>
-                  <strong>Cash at shrines.</strong>
-                  Keep a coin pouch for offerings; bow once before entering torii gates.
-                </li>
-                <li>
-                  <strong>Onsen basics.</strong>
-                  Wash thoroughly before entering the bath, and keep towels out of the water.
-                </li>
-              </ul>
-            </div>
-            <div class="card">
-              <ul class="list">
-                <li>
-                  <strong>Restaurant rhythm.</strong>
-                  Water and tea are complimentary; pay at the register unless seated check is provided.
-                </li>
-                <li>
-                  <strong>Trains run on time.</strong>
-                  Aim to arrive 5–10 minutes early for bullet trains; queue where floor markers show.
-                </li>
-                <li>
-                  <strong>Trash is rare.</strong>
-                  Carry a small bag for recyclables; convenience stores are reliable for bins.
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section id="food" style="margin-top: 48px">
-          <div class="section-header">
-            <div>
-              <h2>Food trail</h2>
-              <p>Mix comfort staples with regional favorites.</p>
-            </div>
-          </div>
-          <div class="grid">
-            <div class="card">
-              <h3>Tokyo</h3>
-              <ul class="list">
-                <li><strong>Shoyu ramen:</strong> Try a counter in Ginza or Kanda.</li>
-                <li><strong>Depachika picnics:</strong> Stock up at Tokyo Station's food halls.</li>
-                <li><strong>Craft coffee:</strong> Kiyosumi-Shirakawa's roasters are a short train away.</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>Kyoto</h3>
-              <ul class="list">
-                <li><strong>Obanzai lunch:</strong> Seasonal side dishes, often under ¥1,200.</li>
-                <li><strong>Matcha everything:</strong> From soft serve to layered parfaits.</li>
-                <li><strong>Tofu hotpot:</strong> Yudofu by Nanzen-ji after a garden stroll.</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>Osaka</h3>
-              <ul class="list">
-                <li><strong>Takoyaki crawl:</strong> Dotombori for the classics; Tenma for locals.</li>
-                <li><strong>Okonomiyaki:</strong> Hiroshima-style spots often offer counter seating.</li>
-                <li><strong>Kushikatsu:</strong> No double dipping—use the cabbage leaves.</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>Hokkaido</h3>
-              <ul class="list">
-                <li><strong>Soup curry:</strong> Sapporo specialty with root vegetables.</li>
-                <li><strong>Seafood don:</strong> Try dawn markets in Hakodate or Sapporo's Nijo Market.</li>
-                <li><strong>Soft serve:</strong> Milk-rich cones at farm stands on rural drives.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section id="itinerary" style="margin-top: 48px">
-          <div class="section-header">
-            <div>
-              <h2>7-day outline</h2>
-              <p>Light structure you can tweak on the fly.</p>
-            </div>
-          </div>
-          <div class="card">
-            <div class="timeline">
-              <div class="step">
-                <div class="step-number">Day 1</div>
-                <div>
-                  <strong>Tokyo arrival.</strong> Check into a hub near Tokyo Station or Shinjuku. Evening
-                  izakaya in Omoide Yokocho and a quick peek at Shibuya Crossing.
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">Day 2</div>
-                <div>
-                  <strong>Tokyo design day.</strong> Spend the morning at Nezu Museum, lunch in Aoyama,
-                  and sunset views from Roppongi Hills or Shibuya Sky.
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">Day 3</div>
-                <div>
-                  <strong>Hakone or Kamakura escape.</strong> Hot springs with Fuji views or seaside
-                  temples. Return to Tokyo for dinner.
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">Day 4</div>
-                <div>
-                  <strong>Kyoto transfer.</strong> Ride the Shinkansen, drop bags, and explore
-                  Gion's lantern-lit alleys at dusk.
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">Day 5</div>
-                <div>
-                  <strong>Temples & tea.</strong> Morning at Fushimi Inari, mid-day at Nishiki Market,
-                  and a sunset stroll through Higashiyama.
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">Day 6</div>
-                <div>
-                  <strong>Arashiyama calm.</strong> Rent a bike for bamboo grove and river views, then
-                  soak at an onsen in Kurama or Kameoka.
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">Day 7</div>
-                <div>
-                  <strong>Osaka finale.</strong> Transfer to Osaka for flights, squeeze in a takoyaki
-                  crawl, and stock up on snacks at Kuromon Market.
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="tips" style="margin-top: 48px">
-          <div class="section-header">
-            <div>
-              <h2>Practical essentials</h2>
-              <p>Keep these in your back pocket.</p>
-            </div>
-          </div>
-          <div class="grid">
-            <div class="card">
-              <h3>Transit toolkit</h3>
-              <div class="tips">
-                <div class="tip">
-                  <strong>IC cards:</strong> Grab a Suica or PASMO before leaving the airport; works on
-                  metro, buses, and most vending machines.
-                </div>
-                <div class="tip">
-                  <strong>Data:</strong> eSIMs are reliable—look for plans with 10–20GB for a week.
-                </div>
-                <div class="tip">
-                  <strong>Luggage:</strong> Use takkyubin forwarding between cities to travel light.
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <h3>Weather planning</h3>
-              <div class="tips">
-                <div class="tip">
-                  <strong>Rain-ready:</strong> Pack a compact umbrella; convenience stores sell sturdy
-                  clear ones for ~¥500.
-                </div>
-                <div class="tip">
-                  <strong>Heat tactics:</strong> In summer, carry a small towel and sunscreen—hydration
-                  drinks like Pocari Sweat are everywhere.
-                </div>
-                <div class="tip">
-                  <strong>Layering:</strong> Evenings cool quickly in spring and autumn, so keep a light
-                  jacket in your daypack.
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <h3>Etiquette refresh</h3>
-              <div class="tips">
-                <div class="tip">
-                  <strong>Cash handoff:</strong> Use the small tray at registers; avoid passing bills
-                  directly.
-                </div>
-                <div class="tip">
-                  <strong>Quiet corners:</strong> Lower voices on trains and in shared lodgings.
-                </div>
-                <div class="tip">
-                  <strong>Thank you:</strong> "Arigatou gozaimasu" goes a long way—pair it with a light
-                  bow.
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+    <div class="lyrics-panel" id="lyricsPanel" aria-hidden="true">
+      <div class="lyrics-card">
+        <div class="lyrics-header">
+          <h3>选择学习进度</h3>
+          <button class="close-btn" id="closeLyrics" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="lyrics-list" id="lyricsList"></div>
       </div>
-    </main>
+    </div>
 
-    <footer>
-      <div class="wrap">
-        Crafted for travelers who want a balanced Tokyo–Kyoto loop with room for surprise detours.
-        Bookmark and tweak as you go.
-      </div>
-    </footer>
+    <script>
+      const lyricsLines = [
+        "この世で初めてメガネを発明した人が言った",
+        "「これをかけたら見えなかったものが見えるようになる」と",
+        "「お困りとあらば私のこれを貸してさしあげましょう",
+        "さあ世界を見渡してごらんなさい」",
+        "それを受け取った人がとても戸惑いながら言った",
+        "「これをかけたら見えていたものが見えなくなってしまった」",
+        "「いやそんなはずはないあなたの目がどうかしてるのだろう」",
+        "嘘つきはどっちなんだと",
+        "君の瞳に丁度いい メガネは僕には合わない",
+        "ただそれだけのことなのに",
+        "ただそれだけのことなのに",
+        "たとえば信じる神様の違いや",
+        "どこかの誰かの正義と悪が",
+        "君の瞳に丁度よくなくて",
+        "世界がボヤけて見える日がある",
+        "誰もが同じ景色を見ていて",
+        "人の数だけ違く見えていて",
+        "それでも分かり合えると信じて",
+        "心の瞳をこらす",
+        "心のメガネ探してる",
+        "僕にとっての悪者を裁いてやると叫んでも",
+        "私が正しいと思うことこそが正義と唄っても",
+        "自分の瞳に丁度いいメガネを人に貸すようなもの",
+        "嘘つきはいないのに",
+        "僕の瞳に丁度いい メガネは君には合わない",
+        "ただそれだけのことなのに",
+        "今尚消えない悲しみ",
+        "大好きな物語とか音楽が",
+        "憧れの場所や大好物が",
+        "君と僕とで違っているけど",
+        "押し付け合うんじゃなく認めあえたら",
+        "誰もが同じ景色を見ていて",
+        "人の数だけ違く見えていて",
+        "君にはどんな風に見えてるのかな",
+        "想像することがもし出来るなら",
+        "たとえば信じる神様の違いや",
+        "どこかの誰かの正義と悪が",
+        "君の心に丁度よくなくて",
+        "世界がボヤけて見える日がある",
+        "誰もが同じ景色を見ていて",
+        "人の数だけ違く見えていて",
+        "それでも分かり合えると信じて",
+        "心の瞳をこらす",
+        "心のメガネ探してる",
+        "君は今、何を見てる"
+      ];
+
+      const phraseLines = [
+        ["この世で", "初めて", "メガネを", "発明した", "人が", "言った"],
+        ["これを", "かけたら", "見えなかった", "ものが", "見えるように", "なる", "と"],
+        ["お困りと", "あらば", "私の", "これを", "貸して", "さしあげましょう"],
+        ["さあ", "世界を", "見渡して", "ごらんなさい"],
+        ["それを", "受け取った", "人が", "とても", "戸惑いながら", "言った"],
+        ["これを", "かけたら", "見えていた", "ものが", "見えなく", "なって", "しまった"],
+        ["いや", "そんな", "はずは", "ない", "あなたの", "目が", "どうかしてる", "のだろう"],
+        ["嘘つきは", "どっち", "なんだ", "と"],
+        ["君の", "瞳に", "丁度いい", "メガネは", "僕には", "合わない"],
+        ["ただ", "それだけの", "こと", "なのに"],
+        ["ただ", "それだけの", "こと", "なのに"],
+        ["たとえば", "信じる", "神様の", "違いや"],
+        ["どこかの", "誰かの", "正義と", "悪が"],
+        ["君の", "瞳に", "丁度よく", "なくて"],
+        ["世界が", "ボヤけて", "見える", "日が", "ある"],
+        ["誰もが", "同じ", "景色を", "見ていて"],
+        ["人の", "数だけ", "違く", "見えていて"],
+        ["それでも", "分かり合える", "と", "信じて"],
+        ["心の", "瞳を", "こらす"],
+        ["心の", "メガネ", "探してる"],
+        ["僕にとっての", "悪者を", "裁いて", "やる", "と", "叫んでも"],
+        ["私が", "正しい", "と", "思う", "ことこそが", "正義", "と", "唄っても"],
+        ["自分の", "瞳に", "丁度いい", "メガネを", "人に", "貸す", "ような", "もの"],
+        ["嘘つきは", "いない", "のに"],
+        ["僕の", "瞳に", "丁度いい", "メガネは", "君には", "合わない"],
+        ["ただ", "それだけの", "こと", "なのに"],
+        ["今尚", "消えない", "悲しみ"],
+        ["大好きな", "物語とか", "音楽が"],
+        ["憧れの", "場所や", "大好物が"],
+        ["君と", "僕とで", "違っている", "けど"],
+        ["押し付け合う", "んじゃなく", "認めあえたら"],
+        ["誰もが", "同じ", "景色を", "見ていて"],
+        ["人の", "数だけ", "違く", "見えていて"],
+        ["君には", "どんな", "風に", "見えてる", "のかな"],
+        ["想像する", "ことが", "もし", "出来る", "なら"],
+        ["たとえば", "信じる", "神様の", "違いや"],
+        ["どこかの", "誰かの", "正義と", "悪が"],
+        ["君の", "心に", "丁度よく", "なくて"],
+        ["世界が", "ボヤけて", "見える", "日が", "ある"],
+        ["誰もが", "同じ", "景色を", "見ていて"],
+        ["人の", "数だけ", "違く", "見えていて"],
+        ["それでも", "分かり合える", "と", "信じて"],
+        ["心の", "瞳を", "こらす"],
+        ["心の", "メガネ", "探してる"],
+        ["君は", "今", "何を", "見てる"]
+      ];
+
+      const phraseReadings = {
+        "この世で": "このよで",
+        "初めて": "はじめて",
+        "発明した": "はつめいした",
+        "人が": "ひとが",
+        "言った": "いった",
+        "見えなかった": "みえなかった",
+        "見えるように": "みえるように",
+        "お困りと": "おこまりと",
+        "私の": "わたしの",
+        "貸して": "かして",
+        "世界を": "せかいを",
+        "見渡して": "みわたして",
+        "受け取った": "うけとった",
+        "戸惑いながら": "とまどいながら",
+        "見えていた": "みえていた",
+        "見えなく": "みえなく",
+        "目が": "めが",
+        "嘘つきは": "うそつきは",
+        "君の": "きみの",
+        "瞳に": "ひとみに",
+        "丁度いい": "ちょうどいい",
+        "僕には": "ぼくには",
+        "合わない": "あわない",
+        "信じる": "しんじる",
+        "神様の": "かみさまの",
+        "違いや": "ちがいや",
+        "誰かの": "だれかの",
+        "正義と": "せいぎと",
+        "悪が": "あくが",
+        "丁度よく": "ちょうどよく",
+        "世界が": "せかいが",
+        "見える": "みえる",
+        "日が": "ひが",
+        "誰もが": "だれもが",
+        "同じ": "おなじ",
+        "景色を": "けしきを",
+        "人の": "ひとの",
+        "数だけ": "かずだけ",
+        "違く": "ちがく",
+        "分かり合える": "わかりあえる",
+        "信じて": "しんじて",
+        "心の": "こころの",
+        "瞳を": "ひとみを",
+        "僕にとっての": "ぼくにとっての",
+        "悪者を": "わるものを",
+        "裁いて": "さばいて",
+        "叫んでも": "さけんでも",
+        "私が": "わたしが",
+        "正しい": "ただしい",
+        "思う": "おもう",
+        "正義": "せいぎ",
+        "唄っても": "うたっても",
+        "自分の": "じぶんの",
+        "人に": "ひとに",
+        "貸す": "かす",
+        "今尚": "いまなお",
+        "消えない": "きえない",
+        "悲しみ": "かなしみ",
+        "大好きな": "だいすきな",
+        "物語とか": "ものがたりとか",
+        "音楽が": "おんがくが",
+        "憧れの": "あこがれの",
+        "場所や": "ばしょや",
+        "大好物が": "だいこうぶつが",
+        "君と": "きみと",
+        "僕とで": "ぼくとで",
+        "違っている": "ちがっている",
+        "押し付け合う": "おしつけあう",
+        "認めあえたら": "みとめあえたら",
+        "君には": "きみには",
+        "風に": "かぜに",
+        "想像する": "そうぞうする",
+        "出来る": "できる",
+        "心に": "こころに",
+        "探してる": "さがしてる",
+        "君は": "きみは",
+        "今": "いま",
+        "何を": "なにを",
+        "見てる": "みてる"
+      };
+
+      const romajiMap = {
+        "あ": "a",
+        "い": "i",
+        "う": "u",
+        "え": "e",
+        "お": "o",
+        "か": "ka",
+        "き": "ki",
+        "く": "ku",
+        "け": "ke",
+        "こ": "ko",
+        "さ": "sa",
+        "し": "shi",
+        "す": "su",
+        "せ": "se",
+        "そ": "so",
+        "た": "ta",
+        "ち": "chi",
+        "つ": "tsu",
+        "て": "te",
+        "と": "to",
+        "な": "na",
+        "に": "ni",
+        "ぬ": "nu",
+        "ね": "ne",
+        "の": "no",
+        "は": "ha",
+        "ひ": "hi",
+        "ふ": "fu",
+        "へ": "he",
+        "ほ": "ho",
+        "ま": "ma",
+        "み": "mi",
+        "む": "mu",
+        "め": "me",
+        "も": "mo",
+        "や": "ya",
+        "ゆ": "yu",
+        "よ": "yo",
+        "ら": "ra",
+        "り": "ri",
+        "る": "ru",
+        "れ": "re",
+        "ろ": "ro",
+        "わ": "wa",
+        "を": "wo",
+        "ん": "n",
+        "が": "ga",
+        "ぎ": "gi",
+        "ぐ": "gu",
+        "げ": "ge",
+        "ご": "go",
+        "ざ": "za",
+        "じ": "ji",
+        "ず": "zu",
+        "ぜ": "ze",
+        "ぞ": "zo",
+        "だ": "da",
+        "ぢ": "ji",
+        "づ": "zu",
+        "で": "de",
+        "ど": "do",
+        "ば": "ba",
+        "び": "bi",
+        "ぶ": "bu",
+        "べ": "be",
+        "ぼ": "bo",
+        "ぱ": "pa",
+        "ぴ": "pi",
+        "ぷ": "pu",
+        "ぺ": "pe",
+        "ぽ": "po",
+        "ゔ": "vu"
+      };
+
+      const digraphMap = {
+        "きゃ": "kya",
+        "きゅ": "kyu",
+        "きょ": "kyo",
+        "しゃ": "sha",
+        "しゅ": "shu",
+        "しょ": "sho",
+        "ちゃ": "cha",
+        "ちゅ": "chu",
+        "ちょ": "cho",
+        "にゃ": "nya",
+        "にゅ": "nyu",
+        "にょ": "nyo",
+        "ひゃ": "hya",
+        "ひゅ": "hyu",
+        "ひょ": "hyo",
+        "みゃ": "mya",
+        "みゅ": "myu",
+        "みょ": "myo",
+        "りゃ": "rya",
+        "りゅ": "ryu",
+        "りょ": "ryo",
+        "ぎゃ": "gya",
+        "ぎゅ": "gyu",
+        "ぎょ": "gyo",
+        "じゃ": "ja",
+        "じゅ": "ju",
+        "じょ": "jo",
+        "ぢゃ": "ja",
+        "ぢゅ": "ju",
+        "ぢょ": "jo",
+        "びゃ": "bya",
+        "びゅ": "byu",
+        "びょ": "byo",
+        "ぴゃ": "pya",
+        "ぴゅ": "pyu",
+        "ぴょ": "pyo"
+      };
+
+      const etymology = {
+        "あ": "安",
+        "い": "以",
+        "う": "宇",
+        "え": "衣",
+        "お": "於",
+        "か": "加",
+        "き": "幾",
+        "く": "久",
+        "け": "介",
+        "こ": "己",
+        "さ": "左",
+        "し": "之",
+        "す": "寸",
+        "せ": "世",
+        "そ": "曽",
+        "た": "太",
+        "ち": "知",
+        "つ": "川",
+        "て": "天",
+        "と": "止",
+        "な": "奈",
+        "に": "仁",
+        "ぬ": "奴",
+        "の": "乃",
+        "は": "波",
+        "ひ": "比",
+        "ふ": "不",
+        "へ": "部",
+        "ほ": "保",
+        "ま": "末",
+        "み": "美",
+        "む": "武",
+        "め": "女",
+        "も": "毛",
+        "や": "也",
+        "ゆ": "由",
+        "よ": "与",
+        "ら": "良",
+        "り": "利",
+        "る": "留",
+        "れ": "礼",
+        "ろ": "呂",
+        "わ": "和"
+      };
+
+      const rowGroups = [
+        { label: "あ行", kana: ["あ", "い", "う", "え", "お"] },
+        {
+          label: "か行",
+          kana: ["か", "き", "く", "け", "こ", "が", "ぎ", "ぐ", "げ", "ご"]
+        },
+        {
+          label: "さ行",
+          kana: ["さ", "し", "す", "せ", "そ", "ざ", "じ", "ず", "ぜ", "ぞ"]
+        },
+        {
+          label: "た行",
+          kana: ["た", "ち", "つ", "て", "と", "だ", "ぢ", "づ", "で", "ど"]
+        },
+        { label: "な行", kana: ["な", "に", "ぬ", "ね", "の"] },
+        {
+          label: "は行",
+          kana: [
+            "は",
+            "ひ",
+            "ふ",
+            "へ",
+            "ほ",
+            "ば",
+            "び",
+            "ぶ",
+            "べ",
+            "ぼ",
+            "ぱ",
+            "ぴ",
+            "ぷ",
+            "ぺ",
+            "ぽ"
+          ]
+        },
+        { label: "ま行", kana: ["ま", "み", "む", "め", "も"] },
+        { label: "や行", kana: ["や", "ゆ", "よ"] },
+        { label: "ら行", kana: ["ら", "り", "る", "れ", "ろ"] },
+        { label: "わ行", kana: ["わ", "を"] },
+        { label: "ん", kana: ["ん"] }
+      ];
+
+      const rowMap = rowGroups.reduce((map, group) => {
+        group.kana.forEach((kana) => {
+          map[kana] = group.label;
+        });
+        return map;
+      }, {});
+
+      const lyricsStage = document.getElementById("lyricsStage");
+      const lyricsTrack = document.getElementById("lyricsTrack");
+      const hud = document.getElementById("hud");
+      const checkmark = document.getElementById("checkmark");
+      const answerEl = document.getElementById("answer");
+      const inputShell = document.querySelector(".input-shell");
+      const roundNote = document.getElementById("roundNote");
+      const statusEl = document.getElementById("status");
+      const statusTitle = document.getElementById("statusTitle");
+      const statusDetail = document.getElementById("statusDetail");
+      const statusSource = document.getElementById("statusSource");
+      const historyList = document.getElementById("historyList");
+      const historyPanel = document.getElementById("historyPanel");
+      const pauseNote = document.getElementById("pauseNote");
+      const audioRow = document.getElementById("audioRow");
+      const audioBtn = document.getElementById("audioBtn");
+      const rangeBtn = document.getElementById("rangeBtn");
+      const phraseToggle = document.getElementById("phraseToggle");
+      const lyricsPanel = document.getElementById("lyricsPanel");
+      const lyricsList = document.getElementById("lyricsList");
+      const closeLyrics = document.getElementById("closeLyrics");
+
+      const roundSize = 5;
+      const phraseChance = 0.25;
+      const smallKana = new Set(["ぁ", "ぃ", "ぅ", "ぇ", "ぉ", "ゃ", "ゅ", "ょ", "っ", "ゎ"]);
+      const ignoredKana = new Set(["ー", "ゝ", "ゞ"]);
+
+      let current = null;
+      let attempts = 0;
+      let hadWrong = false;
+      let history = [];
+      let wrongItems = [];
+      let reviewMode = false;
+      let reviewQueue = [];
+      let reviewIndex = 0;
+      let practiceQueue = [];
+      let practiceIndex = 0;
+      let isLocked = false;
+      let pauseActive = false;
+      let lyricsOpen = false;
+      let awaitingNext = false;
+      let progressLine = lyricsLines.length;
+      let highlightLineIndex = null;
+      let highlightTarget = "";
+      let phraseEnabled = false;
+      let pendingHudPosition = false;
+      let hudFallbackTimer = null;
+      const wrongMap = new Set();
+
+      function shuffle(list) {
+        for (let i = list.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [list[i], list[j]] = [list[j], list[i]];
+        }
+        return list;
+      }
+
+      function isKanaChar(char) {
+        const code = char.charCodeAt(0);
+        return (code >= 0x3040 && code <= 0x309f) || (code >= 0x30a0 && code <= 0x30ff);
+      }
+
+      function isKatakana(char) {
+        const code = char.charCodeAt(0);
+        return code >= 0x30a0 && code <= 0x30ff;
+      }
+
+      function toHiragana(char) {
+        if (!isKatakana(char)) {
+          return char;
+        }
+        return String.fromCharCode(char.charCodeAt(0) - 0x60);
+      }
+
+      function escapeHtml(text) {
+        return text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function addSlashSpans(html) {
+        return html.replace(/\s\/\s/g, ' <span class="slash">/</span> ');
+      }
+
+      function buildLineWithSlashes(index) {
+        const parts = phraseLines[index];
+        if (!parts) {
+          return lyricsLines[index];
+        }
+        return parts.join(" / ");
+      }
+
+      function highlightLine(line, target) {
+        if (!target) {
+          return escapeHtml(line);
+        }
+        const safeLine = escapeHtml(line);
+        const safeTarget = escapeHtml(target);
+        if (!safeLine.includes(safeTarget)) {
+          return safeLine;
+        }
+        return safeLine.split(safeTarget).join(`<span class="lyric-hit">${safeTarget}</span>`);
+      }
+
+      function renderLyricsTrack() {
+        const visibleLines = lyricsLines.slice(0, progressLine);
+        lyricsTrack.innerHTML = "";
+        visibleLines.forEach((line, index) => {
+          const lineEl = document.createElement("div");
+          lineEl.className = "lyric-line";
+          lineEl.dataset.index = String(index);
+          const lineWithSlashes = buildLineWithSlashes(index);
+          const lineHtml =
+            index === highlightLineIndex
+              ? highlightLine(lineWithSlashes, highlightTarget)
+              : escapeHtml(lineWithSlashes);
+          lineEl.innerHTML = addSlashSpans(lineHtml);
+          lyricsTrack.appendChild(lineEl);
+        });
+        updateLyricsFocus();
+      }
+
+      function updateLyricsFocus() {
+        const lineEls = Array.from(lyricsTrack.children);
+        lineEls.forEach((lineEl) => {
+          const index = Number(lineEl.dataset.index);
+          lineEl.classList.toggle("focus", index === highlightLineIndex);
+          lineEl.classList.remove("reveal");
+        });
+
+        const focusEl = lineEls.find(
+          (lineEl) => Number(lineEl.dataset.index) === highlightLineIndex
+        );
+        if (!focusEl) {
+          return;
+        }
+        const stageHeight = lyricsStage.clientHeight;
+        const lineCenter = focusEl.offsetTop + focusEl.offsetHeight / 2;
+        const offset = stageHeight / 2 - lineCenter;
+        lyricsTrack.style.transform = `translateY(${offset}px)`;
+        animateFocusFrame(focusEl);
+        pendingHudPosition = true;
+        hud.classList.add("moving");
+        if (hudFallbackTimer) {
+          window.clearTimeout(hudFallbackTimer);
+        }
+        hudFallbackTimer = window.setTimeout(finalizeHudPosition, 750);
+      }
+
+      function positionHud(focusEl) {
+        if (!focusEl) {
+          return;
+        }
+        const targetEl = focusEl.querySelector(".lyric-hit") || focusEl;
+        const rect = targetEl.getBoundingClientRect();
+        const panelHeight = hud.offsetHeight;
+        const panelWidth = hud.offsetWidth;
+        const margin = 16;
+        let top = rect.bottom + margin;
+        const maxTop = window.innerHeight - panelHeight - margin;
+        if (top > maxTop) {
+          top = rect.top - panelHeight - margin;
+        }
+        top = Math.max(margin, Math.min(top, maxTop));
+        const inputOffset = inputShell ? inputShell.offsetLeft + inputShell.offsetWidth / 2 : panelWidth / 2;
+        let left = rect.left + rect.width / 2 - inputOffset;
+        const maxLeft = window.innerWidth - panelWidth - margin;
+        left = Math.max(margin, Math.min(left, maxLeft));
+        hud.style.top = `${top}px`;
+        hud.style.left = `${left}px`;
+      }
+
+      function finalizeHudPosition() {
+        if (!pendingHudPosition) {
+          return;
+        }
+        pendingHudPosition = false;
+        const focusEl = lyricsTrack.querySelector(`[data-index="${highlightLineIndex}"]`);
+        positionHud(focusEl);
+        hud.classList.remove("moving");
+      }
+
+      function animateFocusFrame(focusEl) {
+        focusEl.classList.remove("reveal");
+        void focusEl.offsetWidth;
+        focusEl.classList.add("reveal");
+        window.setTimeout(() => focusEl.classList.remove("reveal"), 600);
+      }
+
+      function pulseHighlight() {
+        const focusEl = lyricsTrack.querySelector(`[data-index="${highlightLineIndex}"]`);
+        if (!focusEl) {
+          return;
+        }
+        focusEl.classList.remove("pulse");
+        void focusEl.offsetWidth;
+        focusEl.classList.add("pulse");
+        window.setTimeout(() => focusEl.classList.remove("pulse"), 400);
+      }
+
+      function showCheckmark() {
+        if (!checkmark) {
+          return;
+        }
+        checkmark.classList.remove("show");
+        void checkmark.offsetWidth;
+        checkmark.classList.add("show");
+      }
+
+      function setStatus(type, title, detail) {
+        statusEl.className = `status show ${type}`;
+        statusTitle.textContent = title || "";
+        statusDetail.textContent = detail || "";
+      }
+
+      function setStatusSource(item) {
+        if (!item || item.lineIndex === undefined || !item.lineText) {
+          statusSource.innerHTML = "";
+          renderLyricsList();
+          const focusEl = lyricsTrack.querySelector(`[data-index="${highlightLineIndex}"]`);
+          positionHud(focusEl);
+          return;
+        }
+        const lineWithSlashes = buildLineWithSlashes(item.lineIndex);
+        const sourceHtml = highlightLine(lineWithSlashes, item.highlightText || item.kana);
+        statusSource.innerHTML = addSlashSpans(sourceHtml);
+        renderLyricsList();
+        const focusEl = lyricsTrack.querySelector(`[data-index="${highlightLineIndex}"]`);
+        positionHud(focusEl);
+      }
+
+      function clearStatus() {
+        statusEl.className = "status";
+        statusTitle.textContent = "";
+        statusDetail.textContent = "";
+        statusSource.innerHTML = "";
+      }
+
+      function showRoundNote() {
+        if (!roundNote) {
+          return;
+        }
+        roundNote.classList.add("show");
+        window.setTimeout(() => {
+          roundNote.classList.remove("show");
+        }, 2000);
+      }
+
+      function animateHistoryFade() {
+        const items = Array.from(historyList.children);
+        items.forEach((item, index) => {
+          item.style.animation = `fadeSlide 0.5s ease ${index * 40}ms forwards`;
+        });
+        window.setTimeout(() => {
+          historyList.innerHTML = "";
+        }, 700);
+      }
+
+      function setInputsDisabled(disabled) {
+        answerEl.disabled = disabled;
+      }
+
+      function updateModeLabel() {
+        historyPanel.classList.toggle("review", reviewMode);
+      }
+
+      function updateRangeLabel() {
+        rangeBtn.textContent = `学习范围 · 第${progressLine}行`;
+      }
+
+      function resetHistory() {
+        history = [];
+        historyList.innerHTML = "";
+        wrongItems = [];
+        wrongMap.clear();
+      }
+
+      function kanaToRomaji(text) {
+        let result = "";
+        let geminate = false;
+
+        for (let i = 0; i < text.length; i += 1) {
+          const char = text[i];
+          if (char === "っ") {
+            geminate = true;
+            continue;
+          }
+
+          let syllable = "";
+          const next = text[i + 1];
+          if (next && (next === "ゃ" || next === "ゅ" || next === "ょ")) {
+            const combo = char + next;
+            if (digraphMap[combo]) {
+              syllable = digraphMap[combo];
+              i += 1;
+            }
+          }
+
+          if (!syllable) {
+            syllable = romajiMap[char] || "";
+          }
+
+          if (!syllable) {
+            continue;
+          }
+
+          if (geminate) {
+            if (syllable.startsWith("ch")) {
+              syllable = `t${syllable}`;
+            } else if (syllable.startsWith("sh")) {
+              syllable = `s${syllable}`;
+            } else {
+              syllable = `${syllable[0]}${syllable}`;
+            }
+            geminate = false;
+          }
+
+          result += syllable;
+        }
+
+        return result;
+      }
+
+      function buildSinglePool() {
+        const map = new Map();
+        const lines = lyricsLines.slice(0, progressLine);
+        lines.forEach((line, lineIndex) => {
+          for (const char of line) {
+            if (!isKanaChar(char)) {
+              continue;
+            }
+            const hira = toHiragana(char);
+            if (smallKana.has(hira) || ignoredKana.has(hira)) {
+              continue;
+            }
+            const romaji = romajiMap[hira];
+            if (!romaji) {
+              continue;
+            }
+            const entry = map.get(hira) || {
+              type: "single",
+              kana: hira,
+              romaji,
+              isKatakana: false,
+              occurrences: []
+            };
+            entry.isKatakana = entry.isKatakana || isKatakana(char);
+            entry.occurrences.push({ lineIndex, lineText: line, highlightText: char });
+            map.set(hira, entry);
+          }
+        });
+
+        return Array.from(map.values()).map((entry) => {
+          const occurrence = entry.occurrences[0];
+          return {
+            type: entry.type,
+            kana: entry.kana,
+            romaji: entry.romaji,
+            isKatakana: entry.isKatakana,
+            lineIndex: occurrence.lineIndex,
+            lineText: occurrence.lineText,
+            highlightText: occurrence.highlightText
+          };
+        });
+      }
+
+      function buildPhrasePool() {
+        const result = [];
+        const lines = lyricsLines.slice(0, progressLine);
+        const segments = phraseLines.slice(0, progressLine);
+
+        segments.forEach((parts, lineIndex) => {
+          const lineText = lines[lineIndex];
+          parts.forEach((segment) => {
+            let isSegmentKatakana = false;
+            let hira = "";
+            const hasNonKana = Array.from(segment).some((char) => !isKanaChar(char));
+            for (const char of segment) {
+              if (isKatakana(char)) {
+                isSegmentKatakana = true;
+              }
+              hira += toHiragana(char);
+            }
+            if (hasNonKana) {
+              hira = phraseReadings[segment] || "";
+            }
+            const romaji = kanaToRomaji(hira);
+            if (!romaji) {
+              return;
+            }
+            result.push({
+              type: "phrase",
+              kana: hira,
+              romaji,
+              isKatakana: isSegmentKatakana,
+              lineIndex,
+              lineText,
+              highlightText: segment
+            });
+          });
+        });
+        return result;
+      }
+
+      function getItemKey(item) {
+        return `${item.type}:${item.kana}`;
+      }
+
+      function pickFromPool(pool, usedKeys) {
+        const candidates = pool.filter((item) => !usedKeys.has(getItemKey(item)));
+        if (candidates.length === 0) {
+          return null;
+        }
+        return candidates[Math.floor(Math.random() * candidates.length)];
+      }
+
+      function buildRoundQueue() {
+        const singlePool = buildSinglePool();
+        const phrasePool = phraseEnabled ? buildPhrasePool() : [];
+        const round = [];
+        const usedKeys = new Set();
+
+        for (let i = 0; i < roundSize; i += 1) {
+          let item = null;
+          const shouldUsePhrase = phrasePool.length > 0 && Math.random() < phraseChance;
+          if (shouldUsePhrase) {
+            item = pickFromPool(phrasePool, usedKeys);
+            if (!item) {
+              item = pickFromPool(singlePool, usedKeys);
+            }
+          } else {
+            item = pickFromPool(singlePool, usedKeys);
+            if (!item) {
+              item = pickFromPool(phrasePool, usedKeys);
+            }
+          }
+
+          if (!item) {
+            break;
+          }
+          usedKeys.add(getItemKey(item));
+          round.push(item);
+        }
+
+        if (round.length === 0) {
+          round.push({
+            type: "single",
+            kana: "あ",
+            romaji: "a",
+            isKatakana: false,
+            lineIndex: 0,
+            lineText: lyricsLines[0],
+            highlightText: "あ"
+          });
+        }
+
+        return round;
+      }
+
+      function startPracticeRound() {
+        reviewMode = false;
+        reviewQueue = [];
+        reviewIndex = 0;
+        practiceQueue = buildRoundQueue();
+        practiceIndex = 0;
+        resetHistory();
+        updateModeLabel();
+        pickNext();
+      }
+
+      function updatePhraseToggle() {
+        phraseToggle.classList.toggle("active", phraseEnabled);
+        phraseToggle.textContent = `词组: ${phraseEnabled ? "开" : "关"}`;
+      }
+
+      function setHighlight(item) {
+        highlightLineIndex = item.lineIndex;
+        highlightTarget = item.highlightText || item.kana;
+        lyricsStage.classList.toggle("katakana-hint", item.isKatakana);
+        renderLyricsTrack();
+      }
+
+      function pickNext() {
+        if (reviewMode) {
+          if (reviewIndex >= reviewQueue.length) {
+            endReview();
+            return;
+          }
+          current = reviewQueue[reviewIndex];
+        } else {
+          if (practiceIndex >= practiceQueue.length) {
+            startPracticeRound();
+            return;
+          }
+          current = practiceQueue[practiceIndex];
+        }
+        attempts = 0;
+        hadWrong = false;
+        awaitingNext = false;
+        audioRow.classList.remove("show");
+        clearStatus();
+        setHighlight(current);
+        answerEl.value = "";
+        answerEl.focus();
+        updateModeLabel();
+      }
+
+      function triggerShake() {
+        answerEl.classList.remove("shake");
+        void answerEl.offsetWidth;
+        answerEl.classList.add("shake");
+      }
+
+      function addWrongItem(item) {
+        const key = getItemKey(item);
+        if (!wrongMap.has(key)) {
+          wrongMap.add(key);
+          wrongItems.push(item);
+        }
+      }
+
+      function addHistory(item, status) {
+        history.unshift({ item, status });
+        if (history.length > roundSize) {
+          history.pop();
+        }
+
+        const icon = status === "correct" ? "✓" : "●";
+        const record = document.createElement("li");
+        record.className = `record ${status} new`;
+        record.innerHTML = `
+          <span class="record-kana">${item.kana}</span>
+          <span class="record-romaji">${item.romaji}</span>
+          <span class="record-icon">${icon}</span>
+        `;
+        historyList.prepend(record);
+        window.setTimeout(() => record.classList.remove("new"), 400);
+
+        while (historyList.children.length > roundSize) {
+          historyList.removeChild(historyList.lastElementChild);
+        }
+      }
+
+      function startSilentRecall() {
+        isLocked = true;
+        pauseActive = true;
+        pauseNote.classList.add("show");
+        setInputsDisabled(true);
+        window.setTimeout(() => {
+          pauseNote.classList.remove("show");
+          pauseActive = false;
+          if (!lyricsOpen) {
+            setInputsDisabled(false);
+          }
+          isLocked = false;
+          startReview();
+        }, 5000);
+      }
+
+      function startReview() {
+        reviewMode = true;
+        reviewQueue = shuffle([...wrongItems]);
+        reviewIndex = 0;
+        updateModeLabel();
+        setStatus("warning", "复习时间", "");
+        statusEl.classList.add("review");
+        setStatusSource(null);
+        window.setTimeout(pickNext, 2000);
+      }
+
+      function endReview() {
+        setStatus("success", "复习完成", "继续新的练习");
+        setStatusSource(null);
+        window.setTimeout(startPracticeRound, 600);
+      }
+
+      function advancePracticeRound() {
+        practiceIndex += 1;
+        if (practiceIndex >= practiceQueue.length) {
+          animateHistoryFade();
+          if (wrongItems.length > 0) {
+            showRoundNote();
+            startReview();
+          } else {
+            showRoundNote();
+            setStatusSource(null);
+            window.setTimeout(startPracticeRound, 2000);
+          }
+        } else {
+          pickNext();
+        }
+      }
+
+      function resolveCorrect() {
+        clearStatus();
+        setStatusSource(null);
+        pulseHighlight();
+        showCheckmark();
+        if (reviewMode) {
+          window.setTimeout(() => {
+            reviewIndex += 1;
+            pickNext();
+          }, 2000);
+        } else {
+          if (hadWrong) {
+            addWrongItem(current);
+          }
+          addHistory(current, hadWrong ? "near" : "correct");
+          window.setTimeout(advancePracticeRound, 2000);
+        }
+      }
+
+      function resolveWrongFinal() {
+        const source = etymology[current.kana];
+        let detail = `正确答案是: ${current.romaji}`;
+        if (source) {
+          detail += ` ｜ 字源: 平假名「${current.kana}」来自「${source}」的草书`;
+        }
+        setStatus("error", "不对", detail);
+        setStatusSource(current);
+        if (!reviewMode) {
+          addWrongItem(current);
+          addHistory(current, "wrong");
+        }
+        awaitingNext = true;
+        if ("speechSynthesis" in window) {
+          audioRow.classList.add("show");
+        }
+      }
+
+      function buildHint() {
+        const firstLetter = current.romaji.charAt(0);
+        const rowLabel = rowMap[current.kana];
+        if (rowLabel) {
+          return `这是 ${rowLabel} 的音（以 ${firstLetter} 开头）`;
+        }
+        return `提示: 以 ${firstLetter} 开头`;
+      }
+
+      function buildPhraseHint(inputValue) {
+        const normalizedInput = normalizeRomaji(inputValue);
+        const expected = normalizeRomaji(current.romaji);
+        const syllables = [];
+        const kanaText = current.kana;
+        for (let i = 0; i < kanaText.length; i += 1) {
+          const char = kanaText[i];
+          if (char === "っ") {
+            syllables.push({ kana: "っ", romaji: "っ" });
+            continue;
+          }
+          const next = kanaText[i + 1];
+          if (next && (next === "ゃ" || next === "ゅ" || next === "ょ")) {
+            const combo = char + next;
+            if (digraphMap[combo]) {
+              syllables.push({ kana: combo, romaji: digraphMap[combo] });
+              i += 1;
+              continue;
+            }
+          }
+          const roma = romajiMap[char];
+          if (roma) {
+            syllables.push({ kana: char, romaji: roma });
+          }
+        }
+
+        let cursor = 0;
+        for (const syllable of syllables) {
+          if (syllable.kana === "っ") {
+            const nextRoma = expected.slice(cursor, cursor + 2);
+            cursor += nextRoma.startsWith("tch") || nextRoma.startsWith("ts") ? 1 : 1;
+            continue;
+          }
+          const expectedSlice = expected.slice(cursor, cursor + syllable.romaji.length);
+          const inputSlice = normalizedInput.slice(cursor, cursor + syllable.romaji.length);
+          if (inputSlice !== expectedSlice) {
+            const firstLetter = syllable.romaji.charAt(0);
+            return `错在「${syllable.kana}」（以 ${firstLetter} 开头）`;
+          }
+          cursor += syllable.romaji.length;
+        }
+        return "再试一次";
+      }
+
+      function proceedAfterWrong() {
+        awaitingNext = false;
+        audioRow.classList.remove("show");
+        if (reviewMode) {
+          reviewIndex += 1;
+          pickNext();
+        } else {
+          advancePracticeRound();
+        }
+      }
+
+      function playAudio() {
+        if (!current || !("speechSynthesis" in window)) {
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(current.kana);
+        utterance.lang = "ja-JP";
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function normalizeRomaji(value) {
+        return value.toLowerCase().replace(/[^a-z]/g, "");
+      }
+
+      function checkAnswer() {
+        if (isLocked) {
+          return;
+        }
+
+        if (awaitingNext) {
+          proceedAfterWrong();
+          return;
+        }
+
+        const value = answerEl.value.trim().toLowerCase();
+        if (!value) {
+          setStatus("warning", "先输入罗马音", "比如: a, ka, shi");
+          setStatusSource(null);
+          answerEl.focus();
+          return;
+        }
+
+        if (normalizeRomaji(value) === normalizeRomaji(current.romaji)) {
+          resolveCorrect();
+          return;
+        }
+
+        attempts += 1;
+        triggerShake();
+        hadWrong = true;
+
+        if (attempts >= 2) {
+          resolveWrongFinal();
+        } else {
+          const detail =
+            current.type === "phrase" ? buildPhraseHint(value) : buildHint();
+          setStatus("warning", "还差一点", detail);
+          setStatusSource(current);
+          answerEl.focus();
+          answerEl.select();
+        }
+      }
+
+      function openLyricsPanel() {
+        if (pauseActive) {
+          return;
+        }
+        lyricsOpen = true;
+        lyricsPanel.classList.add("show");
+        lyricsPanel.setAttribute("aria-hidden", "false");
+        renderLyricsList();
+        setInputsDisabled(true);
+      }
+
+      function closeLyricsPanel() {
+        lyricsOpen = false;
+        lyricsPanel.classList.remove("show");
+        lyricsPanel.setAttribute("aria-hidden", "true");
+        if (!pauseActive) {
+          setInputsDisabled(false);
+        }
+      }
+
+      function renderLyricsList() {
+        if (!lyricsOpen) {
+          return;
+        }
+        lyricsList.innerHTML = "";
+        lyricsLines.forEach((line, index) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = `lyrics-line${index + 1 === progressLine ? " selected" : ""}`;
+          const text = document.createElement("div");
+          text.className = "lyrics-text";
+          const lineWithSlashes = buildLineWithSlashes(index);
+          const lineHtml =
+            index === highlightLineIndex
+              ? highlightLine(lineWithSlashes, highlightTarget)
+              : escapeHtml(lineWithSlashes);
+          text.innerHTML = `<span class="lyrics-index">${index + 1}.</span>${addSlashSpans(
+            lineHtml
+          )}`;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "select-btn";
+          btn.textContent = "";
+          btn.setAttribute("aria-label", `学到第${index + 1}行`);
+          btn.dataset.index = String(index);
+          wrapper.appendChild(text);
+          wrapper.appendChild(btn);
+          lyricsList.appendChild(wrapper);
+        });
+      }
+
+      rangeBtn.addEventListener("click", openLyricsPanel);
+      phraseToggle.addEventListener("click", () => {
+        phraseEnabled = !phraseEnabled;
+        updatePhraseToggle();
+        startPracticeRound();
+      });
+      closeLyrics.addEventListener("click", closeLyricsPanel);
+      lyricsPanel.addEventListener("click", (event) => {
+        if (event.target === lyricsPanel) {
+          closeLyricsPanel();
+        }
+      });
+
+      lyricsList.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+          return;
+        }
+        if (target.classList.contains("select-btn")) {
+          const index = Number(target.dataset.index);
+          if (!Number.isNaN(index)) {
+            progressLine = index + 1;
+            updateRangeLabel();
+            closeLyricsPanel();
+            startPracticeRound();
+          }
+        }
+      });
+
+      answerEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          checkAnswer();
+        }
+      });
+      audioBtn.addEventListener("click", playAudio);
+      lyricsTrack.addEventListener("transitionend", (event) => {
+        if (event.propertyName === "transform") {
+          finalizeHudPosition();
+        }
+      });
+      window.addEventListener("resize", updateLyricsFocus);
+
+      updateRangeLabel();
+      updatePhraseToggle();
+      renderLyricsTrack();
+      startPracticeRound();
+    </script>
   </body>
 </html>
